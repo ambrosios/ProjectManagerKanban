@@ -51,6 +51,20 @@
     transform: translateX(-3px);
 }
 
+.btn-close {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--gray);
+    padding: 0.5rem;
+    line-height: 1;
+}
+
+.btn-close:hover {
+    color: var(--dark);
+}
+
 /* ============================================
    PROJECT INFO
 ============================================ */
@@ -296,27 +310,6 @@
     margin: 0;
     font-size: 1.4rem;
     font-weight: 600;
-}
-
-.modal-close {
-    background: inherit;
-    border: inherit;
-    color: inherit;
-    font-size: inherit;
-    cursor: pointer;
-    line-height: 1;
-    padding: 0;
-    width: inherit;
-    height: inherit;
-    display: inherit;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: background 0.3s ease;
-}
-
-.modal-close:hover {
-    background: rgba(255, 255, 255, 0.2);
 }
 
 /* Formulaire */

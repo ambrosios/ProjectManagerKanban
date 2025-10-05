@@ -3,39 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion - Kanban Manager</title>
+    <title>🔐 Connexion - Trello Clone Sécurisé</title>
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/login.css">
 </head>
 <body>
     <div class="login-container">
-        <h1>🔐 Connexion</h1>
-        
-        <div class="login-form">
-            <input 
-                type="password" 
-                id="passwordInput" 
-                placeholder="Mot de passe"
-                autocomplete="current-password"
-            >
-            
-            <button id="loginBtn" class="btn-primary">
-                Se connecter
-            </button>
-            
-            <div id="errorMessage" class="error-message"></div>
-        </div>
+        <div class="login-card">
+            <div class="login-header">
+                <h1>🔐 Trello Clone Sécurisé</h1>
+                <p id="loginSubtitle">Protégez vos projets avec un chiffrement AES-256</p>
+            </div>
 
-        <div class="login-info">
-            <p>🔒 Vos données sont chiffrées localement</p>
+            <form id="loginForm" autocomplete="off">
+                <div class="form-group">
+                    <label for="masterPassword">
+                        <span id="passwordLabel">Créer votre mot de passe maître</span>
+                    </label>
+                    <input 
+                        type="password" 
+                        id="masterPassword" 
+                        class="form-control"
+                        placeholder="Minimum 12 caractères"
+                        required
+                        autocomplete="new-password"
+                    >
+                    
+                    <!-- Indicateur de force (uniquement en mode création) -->
+                    <div id="strengthIndicator" class="strength-indicator">
+                        <div class="strength-bar">
+                            <div id="strengthBar" class="strength-fill"></div>
+                        </div>
+                        <small id="strengthText" class="strength-text"></small>
+                    </div>
+                </div>
+
+                <!-- Confirmation (uniquement en mode création) -->
+                <div id="confirmGroup" class="form-group">
+                    <label for="confirmPassword">Confirmer le mot de passe</label>
+                    <input 
+                        type="password" 
+                        id="confirmPassword" 
+                        class="form-control"
+                        placeholder="Retapez votre mot de passe"
+                        autocomplete="new-password"
+                    >
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn btn-primary">
+                    🚀 Créer mon compte
+                </button>
+            </form>
+
+            <div class="login-footer">
+                <p>
+                    <small>
+                        🔒 Vos données sont chiffrées localement<br>
+                        ⚠️ En cas de perte du mot de passe, vos données seront irrécupérables
+                    </small>
+                </p>
+            </div>
         </div>
     </div>
 
-    <!-- Scripts dans le bon ordre -->
-    <script src="js/security.js"></script>
-    <script src="js/crypto.js"></script>
-    <script src="js/storage.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/login.js"></script>
+    <!-- ⚠️ ORDRE CRITIQUE DES SCRIPTS -->
+    <script src="js/security.js"></script>      <!-- 1️⃣ En premier -->
+    <script src="js/storage.js"></script>          <!-- 2️⃣ En deuxième -->
+    <script src="js/crypto.js"></script>        <!-- 3️⃣ En troisième -->
+    <script src="js/auth.js"></script>         <!-- 4️⃣ En dernier -->
+    <script src="js/login.js"></script>         <!-- 4️⃣ En dernier -->
 </body>
 </html>

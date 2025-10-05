@@ -12,8 +12,8 @@ const LoginHandler = {
         console.log('🔐 Initialisation LoginHandler');
         
         // Récupération des éléments DOM
-        this.passwordInput = document.getElementById('passwordInput');
-        this.loginBtn = document.getElementById('loginBtn');
+        this.passwordInput = document.getElementById('masterPassword');
+        this.loginBtn = document.getElementById('submitBtn');
         this.errorMessage = document.getElementById('errorMessage');
         this.setupBtn = document.getElementById('setupBtn');
 
@@ -34,14 +34,18 @@ const LoginHandler = {
     async checkFirstUse() {
         try {
             // ✅ hasStoredData() est synchrone, pas besoin de await
+            console.log("AC0")
             const hasData = StorageManager.hasStoredData();
+            console.log("AC1")
             
             if (!hasData) {
                 // Première utilisation - mode configuration
                 this.showSetupMode();
+                console.log("AC2")
             } else {
                 // Mode connexion normal
                 this.showLoginMode();
+                console.log("AC3")
             }
         } catch (error) {
             console.error('❌ Erreur vérification première utilisation:', error);
@@ -65,6 +69,7 @@ const LoginHandler = {
     showLoginMode() {
         console.log('🔐 Mode connexion normal');
         document.querySelector('.login-container h1').textContent = '🔐 Connexion';
+        document.querySelector("#confirmGroup").style.display = "none";
         this.passwordInput.placeholder = 'Mot de passe';
         this.loginBtn.textContent = 'Se connecter';
     },
