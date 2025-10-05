@@ -93,16 +93,30 @@ async function saveDashboardData() {
 /**
  * Initialise le tableau de bord
  */
-function initializeDashboard() {
-    console.log('🎨 Initialisation interface...');
-    
-    setupHeader();
-    renderProjects();
-    setupEventListeners();
-    updateStats();
-    
-    console.log('✅ Dashboard initialisé');
+/**
+ * Initialise le dashboard (VERSION ASYNC)
+ */
+async function initializeDashboard() {
+    console.log('🎯 Initialisation du dashboard...');
+
+    try {
+
+        // Afficher les projets et stats en parallèle
+        await Promise.all([
+            await refreshDashboard()
+        ]);
+
+        // Événements
+        await setupEventListeners();
+
+        console.log('✅ Dashboard initialisé');
+
+    } catch (error) {
+        console.error('❌ Erreur initialisation:', error);
+        showNotification('Erreur lors de l\'initialisation', 'error');
+    }
 }
+
 
 /**
  * Configure l'en-tête
@@ -128,33 +142,48 @@ function setupHeader() {
 /**
  * Affiche les projets
  */
-function renderProjects() {
+/**
+ * Affiche les projets (VERSION ASYNC)
+ */
+async function renderProjects() {
     const projectsList = document.getElementById('projectsList');
-    const noProjects = document.getElementById('noProjects');
-
     if (!projectsList) return;
 
-    // Si aucun projet
-    if (!DashboardState.projects || DashboardState.projects.length === 0) {
-        projectsList.style.display = 'none';
-        if (noProjects) noProjects.style.display = 'block';
+    console.log('🎨 Affichage des projets...');
+
+    if (DashboardState.projects.length === 0) {
+        projectsList.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-folder-open"></i>
+                <h3>Aucun projet</h3>
+                <p>Créez votre premier projet pour commencer</p>
+            </div>
+        `;
         return;
     }
 
-    // Afficher les projets
-    projectsList.style.display = 'grid';
-    if (noProjects) noProjects.style.display = 'none';
+    // Calculer les stats en parallèle
+    const projectsWithStats = await Promise.all(
+        DashboardState.projects.map(async (project) => {
+            const taskCount = await getProjectTaskCount(project.id);
+            const completedCount = await getProjectCompletedCount(project.id);
+            const progress = taskCount > 0 ? Math.round((completedCount / taskCount) * 100) : 0;
+            
+            return {
+                ...project,
+                stats: { taskCount, completedCount, progress }
+            };
+        })
+    );
 
-    projectsList.innerHTML = DashboardState.projects.map(project => `
+    // Générer le HTML
+    projectsList.innerHTML = projectsWithStats.map(project => `
         <div class="project-card" data-project-id="${project.id}">
             <div class="project-header">
                 <h3>${escapeHtml(project.title)}</h3>
                 <div class="project-actions">
-                    <button class="btn-icon" onclick="openProject('${project.id}')" title="Ouvrir">
-                        📋
-                    </button>
                     <button class="btn-icon" onclick="editProject('${project.id}')" title="Modifier">
-                        ✏️
+                        ✍️
                     </button>
                     <button class="btn-icon btn-danger" onclick="deleteProject('${project.id}')" title="Supprimer">
                         🗑️
@@ -162,47 +191,70 @@ function renderProjects() {
                 </div>
             </div>
             
-            ${project.description ? `
-                <p class="project-description">${escapeHtml(project.description)}</p>
-            ` : ''}
+            <p class="project-description">${escapeHtml(project.description)}</p>
             
             <div class="project-stats">
-                <div class="stat">
-                    <span class="stat-label">Tâches</span>
-                    <span class="stat-value">${getProjectTaskCount(project)}</span>
+                <div class="stat-item">
+                    🧷
+                    <span>${project.stats.taskCount} tâche${project.stats.taskCount > 1 ? 's' : ''}</span>
                 </div>
-                <div class="stat">
-                    <span class="stat-label">Terminées</span>
-                    <span class="stat-value">${getProjectCompletedCount(project)}</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-label">Progression</span>
-                    <span class="stat-value">${getProjectProgress(project)}%</span>
+                <div class="stat-item">
+                    ✅
+                    <span>${project.stats.completedCount} terminée${project.stats.completedCount > 1 ? 's' : ''}</span>
                 </div>
             </div>
             
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: ${getProjectProgress(project)}%"></div>
+            <div class="project-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${project.stats.progress}%"></div>
+                </div>
+                <span class="progress-text">${project.stats.progress}%</span>
+            </div>
+            
+            <div class="project-footer">
+                <span class="project-date">
+                    <i class="fas fa-calendar"></i>
+                    Créé le : ${new Date(project.createdAt).toLocaleDateString('fr-FR')}
+                </span>
+                <button class="btn btn-sm btn-primary" onclick="openProject('${project.id}')">
+                    🔍 Ouvrir
+                </button>
             </div>
         </div>
     `).join('');
+
+    console.log('✅ Projets affichés');
 }
 
 /**
  * Met à jour les statistiques globales
  */
-function updateStats() {
-    // Calculer les stats
+/**
+ * Met à jour les statistiques globales (VERSION ASYNC)
+ */
+async function updateStats() {
+    console.log('📊 Calcul des statistiques globales...');
+    
     const totalProjects = DashboardState.projects.length;
+    
+    // Calculer en parallèle
+    const statsPromises = DashboardState.projects.map(async (project) => {
+        const taskCount = await getProjectTaskCount(project.id);
+        const completedCount = await getProjectCompletedCount(project.id);
+        return { taskCount, completedCount };
+    });
+    
+    const allStats = await Promise.all(statsPromises);
+    
+    // Agréger les résultats
     let totalTasks = 0;
     let completedTasks = 0;
-
-    DashboardState.projects.forEach(project => {
-        const tasks = getAllProjectTasks(project);
-        totalTasks += tasks.length;
-        completedTasks += tasks.filter(t => t.status === 'done').length;
+    
+    allStats.forEach(stat => {
+        totalTasks += stat.taskCount;
+        completedTasks += stat.completedCount;
     });
-
+    
     const progressPercentage = totalTasks > 0 
         ? Math.round((completedTasks / totalTasks) * 100) 
         : 0;
@@ -215,9 +267,12 @@ function updateStats() {
         progressPercentage
     };
 
-    // Mettre à jour l'affichage
+    console.log('📊 Stats calculées:', DashboardState.stats);
+
+    // Afficher
     updateStatsDisplay();
 }
+
 
 /**
  * Affiche les statistiques
@@ -420,8 +475,7 @@ async function handleProjectSave(projectId, modal) {
         
         // Recharger l'affichage
         console.log('🔄 Rafraîchissement de l\'affichage...');
-        renderProjects();
-        updateStats();
+        await refreshDashboard();
         console.log('✅ Affichage mis à jour');
         
         // Fermer la modale
@@ -544,26 +598,55 @@ async function deleteProject(projectId) {
 /**
  * Compte les tâches d'un projet
  */
-function getProjectTaskCount(project) {
-    return getAllProjectTasks(project).length;
+async function getProjectTaskCount(projectId) {
+    try {
+        const tasks = await StorageManager.getTasks(projectId);
+        console.log(`📊 Projet ${projectId}: ${tasks.length} tâches`);
+        return tasks.length;
+    } catch (error) {
+        console.error(`❌ Erreur lecture tâches pour ${projectId}:`, error);
+        return 0;
+    }
 }
 
 /**
  * Compte les tâches terminées d'un projet
  */
-function getProjectCompletedCount(project) {
-    return getAllProjectTasks(project).filter(t => t.status === 'done').length;
+async function getProjectCompletedCount(projectId) {
+    try {
+        const tasks = await StorageManager.getTasks(projectId);
+        const completedTasks = tasks.filter(task => 
+            task.status === 'done' || task.columnId === 'done'
+        );
+        
+        console.log(`✅ Projet ${projectId}: ${completedTasks.length} tâches terminées`);
+        return completedTasks.length;
+    } catch (error) {
+        console.error(`❌ Erreur lecture tâches terminées pour ${projectId}:`, error);
+        return 0;
+    }
 }
 
 /**
  * Calcule la progression d'un projet
  */
-function getProjectProgress(project) {
-    const tasks = getAllProjectTasks(project);
-    if (tasks.length === 0) return 0;
-    
-    const completed = tasks.filter(t => t.status === 'done').length;
-    return Math.round((completed / tasks.length) * 100);
+async function getProjectProgress(projectId) {
+    try {
+        const totalTasks = await getProjectTaskCount(projectId);
+        
+        if (totalTasks === 0) {
+            return 0;
+        }
+        
+        const completedTasks = await getProjectCompletedCount(projectId);
+        const progress = Math.round((completedTasks / totalTasks) * 100);
+        
+        console.log(`📈 Projet ${projectId}: ${progress}% (${completedTasks}/${totalTasks})`);
+        return progress;
+    } catch (error) {
+        console.error(`❌ Erreur calcul progression pour ${projectId}:`, error);
+        return 0;
+    }
 }
 
 /**
@@ -609,3 +692,13 @@ function showNotification(message, type = 'info') {
 }
 
 console.log('📊 Dashboard.js chargé');
+
+/**
+ * Rafraîchit l'affichage complet
+ */
+async function refreshDashboard() {
+    console.log('🔄 Rafraîchissement du dashboard...');
+    await loadDashboardData(); // Recharger les données
+    await renderProjects();
+    await updateStats();
+}
