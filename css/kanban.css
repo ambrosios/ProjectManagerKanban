@@ -245,6 +245,12 @@
     font-weight: 600;
 }
 
+#column-done .task-due-date.overdue {
+    background: #f1f5f9;
+    color: #475569;
+    font-weight: inherit;
+}
+
 /* ============================================
    MODAL
 ============================================ */

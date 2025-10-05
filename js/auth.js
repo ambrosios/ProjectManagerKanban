@@ -23,11 +23,8 @@ const AuthManager = {
      * Vérifie l'authentification au chargement
      */
     checkAuth() {
-        const authenticated = sessionStorage.getItem('authenticated');
-        const password = this.getCurrentPassword();
-
-        if (authenticated === 'true' && password) {
-            this.currentPassword = password;
+        if (sessionStorage.getItem('authenticated') === 'true' && sessionStorage.getItem('currentPassword')) {
+            this.currentPassword = sessionStorage.getItem('currentPassword');
             this.isAuthenticated = true;
             this.startSessionTimer();
             return true;
@@ -75,7 +72,7 @@ const AuthManager = {
         console.log('🔄 Rechargement des données...');
 
         // ✅ Vérification 1 : Un utilisateur est-il connecté ?
-        if (!this.isAuthenticated) {
+        if (!sessionStorage.getItem('authenticated')) {
             console.error('❌ Aucun utilisateur connecté');
             throw new Error('Aucun utilisateur connecté');
         }
@@ -170,7 +167,7 @@ const AuthManager = {
      * Réinitialise le timer (activité utilisateur)
      */
     resetTimer() {
-        if (this.isAuthenticated) {
+        if (sessionStorage.getItem('authenticated')) {
             this.startSessionTimer();
         }
     },

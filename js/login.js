@@ -34,18 +34,14 @@ const LoginHandler = {
     async checkFirstUse() {
         try {
             // ✅ hasStoredData() est synchrone, pas besoin de await
-            console.log("AC0")
             const hasData = StorageManager.hasStoredData();
-            console.log("AC1")
             
             if (!hasData) {
                 // Première utilisation - mode configuration
                 this.showSetupMode();
-                console.log("AC2")
             } else {
                 // Mode connexion normal
                 this.showLoginMode();
-                console.log("AC3")
             }
         } catch (error) {
             console.error('❌ Erreur vérification première utilisation:', error);

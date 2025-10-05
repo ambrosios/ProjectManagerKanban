@@ -121,21 +121,9 @@ async function initializeDashboard() {
 /**
  * Configure l'en-tête
  */
-function setupHeader() {
-    const userNameElement = document.getElementById('userName');
-    const logoutBtn = document.getElementById('logoutBtn');
-
-    if (userNameElement) {
-        userNameElement.textContent = 'Utilisateur';
-    }
-
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
-                AuthManager.logout();
-            }
-        });
+function logOut() {
+    if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+        AuthManager.logout();
     }
 }
 
