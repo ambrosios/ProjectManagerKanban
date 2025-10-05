@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue Globale - Kanban Manager</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/kanban.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-left">
+                <h1>🌐 Vue Globale</h1>
+                <span class="subtitle">Toutes les tâches de tous les projets</span>
+            </div>
+            <nav class="header-nav">
+                <a href="dashboard.html" class="btn btn-outline" id="dashboardBtn">
+                    📊 Mes Projets
+                </a>
+                <button id="lockBtn" class="btn btn-outline" id="logoutBtn">
+                    🔒 Verrouiller
+                </button>
+            </nav>
+        </header>
+
+        <main class="kanban-board">
+            <!-- Colonne À faire -->
+            <div class="column">
+                <div class="column-header">
+                    <h2>📝 À faire</h2>
+                    <span class="card-count" id="todoCount">0</span>
+                </div>
+                <div class="cards-container" id="todo-cards" data-status="todo">
+                    <!-- Cartes injectées ici -->
+                </div>
+            </div>
+
+            <!-- Colonne En cours -->
+            <div class="column">
+                <div class="column-header">
+                    <h2>🔄 En cours</h2>
+                    <span class="card-count" id="inprogressCount">0</span>
+                </div>
+                <div class="cards-container" id="inprogress-cards" data-status="inprogress">
+                    <!-- Cartes injectées ici -->
+                </div>
+            </div>
+
+            <!-- Colonne Terminé -->
+            <div class="column">
+                <div class="column-header">
+                    <h2>✅ Terminé</h2>
+                    <span class="card-count" id="doneCount">0</span>
+                </div>
+                <div class="cards-container" id="done-cards" data-status="done">
+                    <!-- Cartes injectées ici -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Détails Carte -->
+    <div id="cardModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>📋 Détails de la tâche</h2>
+                <button class="close-btn" onclick="macroKanban.closeCardModal()">✕</button>
+            </div>
+            <div class="modal-body modal-split">
+                <div class="modal-main">
+                    <form id="cardForm">
+                        <input type="hidden" id="cardId">
+                        <input type="hidden" id="cardProjectId">
+                        
+                        <div class="form-group">
+                            <label for="cardTitle">Titre *</label>
+                            <input 
+                                type="text" 
+                                id="cardTitle" 
+                                class="form-control"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cardDescription">Description</label>
+                            <textarea 
+                                id="cardDescription" 
+                                class="form-control"
+                                rows="6"
+                            ></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cardDueDate">Date d'échéance</label>
+                            <input 
+                                type="date" 
+                                id="cardDueDate" 
+                                class="form-control"
+                            >
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" id="deleteCardBtn">
+                                🗑️ Supprimer
+                            </button>
+                            <div style="flex: 1"></div>
+                            <button type="button" class="btn btn-outline" onclick="macroKanban.closeCardModal()">
+                                Annuler
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                💾 Enregistrer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-sidebar">
+                    <div class="sidebar-section">
+                        <h3>📌 Projet</h3>
+                        <div id="cardProject" class="project-badge"></div>
+                        <button class="btn btn-outline btn-small btn-block" id="goToProjectBtn">
+                            Ouvrir le projet
+                        </button>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3>📊 Statut</h3>
+                        <div id="cardStatus" class="status-badge"></div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3>📅 Informations</h3>
+                        <div class="info-item">
+                            <span class="info-label">Créée le</span>
+                            <span id="cardCreatedAt" class="info-value"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Modifiée le</span>
+                            <span id="cardUpdatedAt" class="info-value"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Temps de vie</span>
+                            <span id="cardLifetime" class="info-value"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/crypto.js"></script>
+    <script src="js/security.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/macro-kanban.js"></script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban Project</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/kanban.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-left">
+            <button class="back-btn" onclick="window.location.href='dashboard.html'">
+                ← Retour au Dashboard
+            </button>
+        </div>
+        <div class="header-center">
+            <h1 id="projectName">Projet</h1>
+        </div>
+        <div class="header-right">
+            <button class="delete-project-btn" onclick="app.deleteProject()">
+                🗑️ Supprimer le projet
+            </button>
+        </div>
+    </header>
+
+    <!-- Stats -->
+    <div class="project-stats">
+        <div class="stat-card">
+            <div class="stat-icon">📋</div>
+            <div class="stat-info">
+                <div class="stat-label">Tâches totales</div>
+                <div class="stat-value" id="totalTasks">0</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-info">
+                <div class="stat-label">Terminées</div>
+                <div class="stat-value" id="doneTasks">0</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-info">
+                <div class="stat-label">Progression</div>
+                <div class="stat-value" id="progressPercent">0%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kanban Board -->
+    <main class="kanban-board">
+        <!-- À faire -->
+        <div class="kanban-column" data-status="todo">
+            <div class="column-header">
+                <h3>📝 À faire</h3>
+                <span class="task-count" id="todo-count">0</span>
+            </div>
+            <div class="cards-container" id="todo-cards"></div>
+            <button class="add-task-btn">Nouvelle tâche</button>
+        </div>
+
+        <!-- En cours -->
+        <div class="kanban-column" data-status="in-progress">
+            <div class="column-header">
+                <h3>🚀 En cours</h3>
+                <span class="task-count" id="in-progress-count">0</span>
+            </div>
+            <div class="cards-container" id="in-progress-cards"></div>
+            <button class="add-task-btn">Nouvelle tâche</button>
+        </div>
+
+        <!-- Terminé -->
+        <div class="kanban-column" data-status="done">
+            <div class="column-header">
+                <h3>✅ Terminé</h3>
+                <span class="task-count" id="done-count">0</span>
+            </div>
+            <div class="cards-container" id="done-cards"></div>
+            <button class="add-task-btn">Nouvelle tâche</button>
+        </div>
+    </main>
+
+    <!-- Modal Tâche -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Nouvelle tâche</h2>
+                <span class="close">&times;</span>
+            </div>
+            <form id="taskForm">
+                <div class="form-group">
+                    <label for="taskName">Nom de la tâche *</label>
+                    <input type="text" id="taskName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="taskDescription">Description</label>
+                    <textarea id="taskDescription" rows="4"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="taskPriority">Priorité</label>
+                        <select id="taskPriority">
+                            <option value="low">🟢 Basse</option>
+                            <option value="medium" selected>🟡 Moyenne</option>
+                            <option value="high">🔴 Haute</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taskDueDate">Date d'échéance</label>
+                        <input type="date" id="taskDueDate">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="taskStatus">Statut</label>
+                    <select id="taskStatus">
+                        <option value="todo">📝 À faire</option>
+                        <option value="in-progress">🚀 En cours</option>
+                        <option value="done">✅ Terminé</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="taskAssignee">Responsable</label>
+                    <input type="text" id="taskAssignee" placeholder="Nom du responsable">
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="app.closeTaskModal()">Annuler</button>
+                    <button type="submit" class="btn-save">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/crypto.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/project-kanban.js"></script>
+</body>
+</html>

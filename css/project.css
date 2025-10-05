@@ -1,0 +1,411 @@
+/* ========================================
+   🎯 PROJECT - STYLES SPÉCIFIQUES
+======================================== */
+
+/* Ce fichier contient les styles spécifiques à la page projet
+   qui ne sont pas dans kanban.css */
+
+/* ========================================
+   📋 PAGE PROJET - LAYOUT
+======================================== */
+
+body.project-page {
+    background: #f3f4f6;
+    min-height: 100vh;
+}
+
+.project-container {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* ========================================
+   🎯 BREADCRUMB / NAVIGATION
+======================================== */
+
+.project-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.project-breadcrumb a {
+    color: #6366f1;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.project-breadcrumb a:hover {
+    color: #4f46e5;
+    text-decoration: underline;
+}
+
+.project-breadcrumb .separator {
+    color: #d1d5db;
+}
+
+/* ========================================
+   📊 STATISTIQUES DU PROJET
+======================================== */
+
+.project-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: #6b7280;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.stat-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+/* Couleurs des stats */
+.stat-card.stat-todo .stat-value {
+    color: #6366f1;
+}
+
+.stat-card.stat-progress .stat-value {
+    color: #f59e0b;
+}
+
+.stat-card.stat-done .stat-value {
+    color: #10b981;
+}
+
+.stat-card.stat-total .stat-value {
+    color: #6b7280;
+}
+
+/* ========================================
+   ⚙️ PARAMÈTRES DU PROJET
+======================================== */
+
+.project-settings {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.project-settings h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 16px 0;
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.setting-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.setting-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.setting-value {
+    font-size: 14px;
+    color: #6b7280;
+    padding: 8px 12px;
+    background: #f9fafb;
+    border-radius: 6px;
+}
+
+/* ========================================
+   🎨 COULEURS DES COLONNES
+======================================== */
+
+/* Personnalisation visuelle des colonnes */
+.kanban-column[data-column-id="todo"] .column-header {
+    background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+    border-radius: 8px;
+    padding: 12px;
+    margin: -8px -8px 16px -8px;
+}
+
+.kanban-column[data-column-id="inprogress"] .column-header {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-radius: 8px;
+    padding: 12px;
+    margin: -8px -8px 16px -8px;
+}
+
+.kanban-column[data-column-id="done"] .column-header {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    border-radius: 8px;
+    padding: 12px;
+    margin: -8px -8px 16px -8px;
+}
+
+/* ========================================
+   🎯 DRAG & DROP - ZONES DE DÉPÔT
+======================================== */
+
+.column-tasks.drag-over {
+    background: #e0e7ff;
+    border: 2px dashed #6366f1;
+    border-radius: 8px;
+    min-height: 100px;
+}
+
+.task-card.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
+}
+
+/* ========================================
+   ✏️ MODIFICATION RAPIDE
+======================================== */
+
+.quick-edit {
+    background: #fffbeb;
+    border: 2px solid #fbbf24;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 8px;
+}
+
+.quick-edit textarea {
+    width: 100%;
+    min-height: 60px;
+    padding: 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    resize: vertical;
+}
+
+.quick-edit-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+/* ========================================
+   🔍 RECHERCHE ET FILTRES
+======================================== */
+
+.project-filters {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-search {
+    flex: 1;
+    min-width: 250px;
+}
+
+.filter-search input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.filter-select {
+    min-width: 150px;
+}
+
+.filter-select select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+    cursor: pointer;
+}
+
+.column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.column-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.task-count {
+    background: #e0e0e0;
+    color: #333;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    min-width: 24px;
+    text-align: center;
+}
+
+/* Couleurs spécifiques par colonne */
+.kanban-column[data-status="todo"] .task-count {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.kanban-column[data-status="inprogress"] .task-count {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.kanban-column[data-status="done"] .task-count {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+
+/* ========================================
+   📱 RESPONSIVE
+======================================== */
+
+@media (max-width: 1024px) {
+    .project-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .project-container {
+        padding: 12px;
+    }
+
+    .project-stats {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .stat-card {
+        padding: 16px;
+    }
+
+    .stat-value {
+        font-size: 24px;
+    }
+
+    .project-filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-search {
+        min-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .project-header {
+        padding: 16px;
+    }
+
+    .project-title {
+        font-size: 22px;
+    }
+
+    .project-actions {
+        flex-direction: column;
+    }
+
+    .project-actions .btn {
+        width: 100%;
+    }
+}
+
+/* ========================================
+   🎨 THÈME SOMBRE (optionnel)
+======================================== */
+
+@media (prefers-color-scheme: dark) {
+    body.project-page {
+        background: #111827;
+    }
+
+    .project-header,
+    .stat-card,
+    .project-settings,
+    .project-filters {
+        background: #1f2937;
+        color: #f3f4f6;
+    }
+
+    .project-title,
+    .column-title,
+    .task-title,
+    .stat-value {
+        color: #f3f4f6;
+    }
+
+    .project-description,
+    .stat-label,
+    .task-description {
+        color: #9ca3af;
+    }
+
+    .kanban-column {
+        background: #1f2937;
+    }
+
+    .task-card {
+        background: #374151;
+        border-left-color: #4b5563;
+    }
+
+    .task-card:hover {
+        background: #4b5563;
+    }
+}

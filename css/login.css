@@ -1,0 +1,206 @@
+/**
+ * 🔐 Styles page de connexion
+ */
+
+/* ========================================
+   🔐 CONTENEUR LOGIN
+======================================== */
+
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.login-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 40px;
+    width: 100%;
+    max-width: 450px;
+    animation: slideUp 0.3s ease-out;
+}
+
+/* ========================================
+   📋 HEADER LOGIN
+======================================== */
+
+.login-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.login-header h1 {
+    color: var(--grey-900);
+    font-size: 28px;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.login-header p {
+    color: var(--grey-500);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* ========================================
+   💪 INDICATEUR DE FORCE
+======================================== */
+
+.strength-indicator {
+    margin-top: 12px;
+}
+
+.strength-bar {
+    height: 6px;
+    background: var(--grey-200);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.strength-fill {
+    height: 100%;
+    width: 0%;
+    transition: all 0.3s ease;
+    border-radius: 3px;
+}
+
+.strength-fill.weak {
+    width: 33%;
+    background: var(--danger);
+}
+
+.strength-fill.medium {
+    width: 66%;
+    background: var(--warning);
+}
+
+.strength-fill.strong {
+    width: 100%;
+    background: var(--success);
+}
+
+.strength-text {
+    display: block;
+    font-size: 12px;
+    color: var(--grey-500);
+}
+
+.strength-requirements {
+    margin-top: 12px;
+    padding: 12px;
+    background: var(--grey-50);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--info);
+}
+
+.strength-requirements p {
+    font-size: 12px;
+    color: var(--grey-700);
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.strength-requirements ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.strength-requirements li {
+    font-size: 12px;
+    color: var(--grey-600);
+    padding: 4px 0;
+    padding-left: 20px;
+    position: relative;
+}
+
+.strength-requirements li::before {
+    content: '○';
+    position: absolute;
+    left: 0;
+    color: var(--grey-400);
+}
+
+.strength-requirements li.valid {
+    color: var(--success);
+}
+
+.strength-requirements li.valid::before {
+    content: '✓';
+    color: var(--success);
+    font-weight: bold;
+}
+
+/* ========================================
+   🔒 LOCKOUT MESSAGE
+======================================== */
+
+.lockout-message {
+    text-align: center;
+    padding: 20px;
+    background: var(--grey-50);
+    border-radius: var(--radius-md);
+    margin-bottom: 20px;
+}
+
+.lockout-message .lockout-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+.lockout-message h3 {
+    color: var(--danger);
+    margin-bottom: 8px;
+    font-size: 18px;
+}
+
+.lockout-message p {
+    color: var(--grey-600);
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.lockout-timer {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--primary);
+    font-family: 'Courier New', monospace;
+}
+
+/* ========================================
+   📱 RESPONSIVE LOGIN
+======================================== */
+
+@media (max-width: 768px) {
+    .login-card {
+        padding: 30px 20px;
+    }
+
+    .login-header h1 {
+        font-size: 24px;
+    }
+
+    .login-header p {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-container {
+        padding: 12px;
+    }
+
+    .login-card {
+        padding: 24px 16px;
+    }
+
+    .login-header h1 {
+        font-size: 22px;
+    }
+}

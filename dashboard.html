@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord - Kanban</title>
+
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-content">
+            <div class="header-title">
+                <h1>📊 Mes Projets Kanban</h1>
+            </div>
+            <div class="header-user">
+                <button class="btn btn-secondary" id="logoutBtn">
+                    🚪 Déconnexion
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <!-- Actions & Stats -->
+        <section class="dashboard-actions">
+            <div class="actions-header">
+                <h2>Vue d'ensemble</h2>
+                <button class="btn btn-primary" onclick="showProjectModal()">
+                    ➕ Nouveau Projet
+                </button>
+            </div>
+            
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <span class="stat-value" id="totalProjects">0</span>
+                    <span class="stat-label">Projets</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="totalTasks">0</span>
+                    <span class="stat-label">Tâches</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="completedTasks">0</span>
+                    <span class="stat-label">Terminées</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="progressPercentage">0%</span>
+                    <span class="stat-label">Progression</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section class="projects-section">
+            <div class="section-header">
+                <h2>Mes projets</h2>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="noProjects" style="display: none;">
+                <div class="empty-state-icon">📋</div>
+                <h3>Aucun projet</h3>
+                <p>Créez votre premier projet pour commencer</p>
+                <button class="btn btn-primary" onclick="showProjectModal()">
+                    ➕ Créer un projet
+                </button>
+            </div>
+
+            <!-- Projects Grid -->
+            <div class="projects-grid" id="projectsList">
+                <!-- Les projets seront affichés ici -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Scripts -->
+    <script src="js/crypto.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
