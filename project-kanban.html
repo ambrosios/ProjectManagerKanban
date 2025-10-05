@@ -3,139 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanban Project</title>
+    <title>Kanban - Projet</title>
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/kanban.css">
 </head>
 <body>
     <!-- Header -->
-    <header class="main-header">
-        <div class="header-left">
-            <button class="back-btn" onclick="window.location.href='dashboard.html'">
-                ← Retour au Dashboard
-            </button>
-        </div>
-        <div class="header-center">
-            <h1 id="projectName">Projet</h1>
-        </div>
-        <div class="header-right">
-            <button class="delete-project-btn" onclick="app.deleteProject()">
-                🗑️ Supprimer le projet
-            </button>
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <button onclick="window.location.href='dashboard.html'" class="btn-back">
+                    ← Retour aux projets
+                </button>
+                <h1 id="project-name">Chargement...</h1>
+            </div>
+            <div class="header-right">
+                <button id="btn-add-task" class="btn-primary">+ Nouvelle tâche</button>
+            </div>
         </div>
     </header>
 
-    <!-- Stats -->
-    <div class="project-stats">
-        <div class="stat-card">
-            <div class="stat-icon">📋</div>
-            <div class="stat-info">
-                <div class="stat-label">Tâches totales</div>
-                <div class="stat-value" id="totalTasks">0</div>
+    <!-- Project Info -->
+    <div class="project-info">
+        <p id="project-description"></p>
+    </div>
+
+    <!-- Kanban Board -->
+    <div class="kanban-container">
+        <!-- Colonne À faire -->
+        <div class="kanban-column" data-status="todo">
+            <div class="column-header">
+                <h2>📋 À faire</h2>
+                <span class="task-count" id="count-todo">0</span>
+            </div>
+            <div class="column-content" id="column-todo" data-status="todo">
+                <!-- Tâches ici -->
             </div>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon">✅</div>
-            <div class="stat-info">
-                <div class="stat-label">Terminées</div>
-                <div class="stat-value" id="doneTasks">0</div>
+
+        <!-- Colonne En cours -->
+        <div class="kanban-column" data-status="in-progress">
+            <div class="column-header">
+                <h2>🚀 En cours</h2>
+                <span class="task-count" id="count-in-progress">0</span>
+            </div>
+            <div class="column-content" id="column-in-progress" data-status="in-progress">
+                <!-- Tâches ici -->
             </div>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon">📊</div>
-            <div class="stat-info">
-                <div class="stat-label">Progression</div>
-                <div class="stat-value" id="progressPercent">0%</div>
+
+        <!-- Colonne Terminé -->
+        <div class="kanban-column" data-status="done">
+            <div class="column-header">
+                <h2>✅ Terminé</h2>
+                <span class="task-count" id="count-done">0</span>
+            </div>
+            <div class="column-content" id="column-done" data-status="done">
+                <!-- Tâches ici -->
             </div>
         </div>
     </div>
 
-    <!-- Kanban Board -->
-    <main class="kanban-board">
-        <!-- À faire -->
-        <div class="kanban-column" data-status="todo">
-            <div class="column-header">
-                <h3>📝 À faire</h3>
-                <span class="task-count" id="todo-count">0</span>
-            </div>
-            <div class="cards-container" id="todo-cards"></div>
-            <button class="add-task-btn">Nouvelle tâche</button>
-        </div>
-
-        <!-- En cours -->
-        <div class="kanban-column" data-status="in-progress">
-            <div class="column-header">
-                <h3>🚀 En cours</h3>
-                <span class="task-count" id="in-progress-count">0</span>
-            </div>
-            <div class="cards-container" id="in-progress-cards"></div>
-            <button class="add-task-btn">Nouvelle tâche</button>
-        </div>
-
-        <!-- Terminé -->
-        <div class="kanban-column" data-status="done">
-            <div class="column-header">
-                <h3>✅ Terminé</h3>
-                <span class="task-count" id="done-count">0</span>
-            </div>
-            <div class="cards-container" id="done-cards"></div>
-            <button class="add-task-btn">Nouvelle tâche</button>
-        </div>
-    </main>
-
-    <!-- Modal Tâche -->
-    <div id="taskModal" class="modal">
-        <div class="modal-content">
+    <!-- Modal Ajout/Édition Tâche -->
+    <div id="modal-task" class="modal">
+        <div class="modal-content modal-large">
             <div class="modal-header">
-                <h2 id="modalTitle">Nouvelle tâche</h2>
-                <span class="close">&times;</span>
+                <h2 id="modal-title">Nouvelle tâche</h2>
+                <button class="modal-close">&times;</button>
             </div>
-            <form id="taskForm">
+            
+            <form id="form-task">
                 <div class="form-group">
-                    <label for="taskName">Nom de la tâche *</label>
-                    <input type="text" id="taskName" required>
+                    <label for="task-title">Titre de la tâche *</label>
+                    <input type="text" id="task-title" required maxlength="100">
                 </div>
 
                 <div class="form-group">
-                    <label for="taskDescription">Description</label>
-                    <textarea id="taskDescription" rows="4"></textarea>
+                    <label for="task-description">Description</label>
+                    <textarea id="task-description" rows="4" maxlength="500"></textarea>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="taskPriority">Priorité</label>
-                        <select id="taskPriority">
+                        <label for="task-dueDate">Date d'échéance</label>
+                        <input type="date" id="task-dueDate">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="task-priority">Priorité</label>
+                        <select id="task-priority">
                             <option value="low">🟢 Basse</option>
                             <option value="medium" selected>🟡 Moyenne</option>
                             <option value="high">🔴 Haute</option>
                         </select>
                     </div>
-
-                    <div class="form-group">
-                        <label for="taskDueDate">Date d'échéance</label>
-                        <input type="date" id="taskDueDate">
-                    </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="taskStatus">Statut</label>
-                    <select id="taskStatus">
-                        <option value="todo">📝 À faire</option>
+                    <label for="task-status">Colonne</label>
+                    <select id="task-status">
+                        <option value="todo">📋 À faire</option>
                         <option value="in-progress">🚀 En cours</option>
                         <option value="done">✅ Terminé</option>
                     </select>
                 </div>
 
-                <div class="form-group">
-                    <label for="taskAssignee">Responsable</label>
-                    <input type="text" id="taskAssignee" placeholder="Nom du responsable">
+                <!-- Métadonnées (visible en mode édition) -->
+                <div id="task-metadata" class="metadata-section" style="display: none;">
+                    <h3>📊 Métadonnées</h3>
+                    <div class="metadata-grid">
+                        <div class="metadata-item">
+                            <span class="metadata-label">Créée le :</span>
+                            <span id="meta-created">-</span>
+                        </div>
+                        <div class="metadata-item">
+                            <span class="metadata-label">Modifiée le :</span>
+                            <span id="meta-modified">-</span>
+                        </div>
+                        <div class="metadata-item">
+                            <span class="metadata-label">Durée de vie :</span>
+                            <span id="meta-lifetime">-</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-actions">
-                    <button type="button" class="btn-cancel" onclick="app.closeTaskModal()">Annuler</button>
-                    <button type="submit" class="btn-save">Enregistrer</button>
+                    <button type="button" class="btn-cancel btn-secondary modal-close">Annuler</button>
+                    <button type="submit" class="btn-primary">
+                        <span id="btn-submit-text">Créer la tâche</span>
+                    </button>
                 </div>
             </form>
+
+            <!-- Bouton supprimer (visible en mode édition) -->
+            <button id="btn-delete-task" class="btn-danger" style="display: none;">
+                🗑️ Supprimer cette tâche
+            </button>
         </div>
     </div>
 

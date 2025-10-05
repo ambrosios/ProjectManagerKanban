@@ -270,6 +270,167 @@ const StorageManager = {
         const data = await this.loadData(password);
         data.settings = { ...data.settings, ...settings };
         await this.saveData(password, data);
+    },
+
+    /* ========================================
+       📂 GESTION DES PROJETS
+    ======================================== */
+    async getProjects() {
+        const password = AuthManager.getCurrentPassword();
+        const data = await this.loadData(password);
+        return data.projects || [];
+    },
+
+    async getProject(projectId) {
+        const projects = await this.getProjects();
+        return projects.find(p => p.id === projectId);
+    },
+
+    async createProject(projectData) {
+        const password = AuthManager.getCurrentPassword();
+        const data = await this.loadData(password);
+        
+        const newProject = {
+            id: 'project_' + Date.now(),
+            name: projectData.name,
+            description: projectData.description || '',
+            color: projectData.color || '#667eea',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        
+        data.projects.push(newProject);
+        await this.saveData(password, data);
+        
+        console.log('✅ Projet créé:', newProject);
+        return newProject;
+    },
+
+    async updateProject(projectId, projectData) {
+        const password = AuthManager.getCurrentPassword();
+        const data = await this.loadData(password);
+        
+        const index = data.projects.findIndex(p => p.id === projectId);
+        if (index !== -1) {
+            data.projects[index] = {
+                ...data.projects[index],
+                ...projectData,
+                updatedAt: new Date().toISOString()
+            };
+            
+            await this.saveData(password, data);
+            console.log('✅ Projet mis à jour');
+            return data.projects[index];
+        }
+        
+        return null;
+    },
+
+    async deleteProject(projectId) {
+        const password = AuthManager.getCurrentPassword();
+        const data = await this.loadData(password);
+        
+        data.projects = data.projects.filter(p => p.id !== projectId);
+        
+        // Supprimer aussi les tâches du projet
+        if (data.tasks && data.tasks[projectId]) {
+            delete data.tasks[projectId];
+        }
+        
+        await this.saveData(password, data);
+        console.log('🗑️ Projet supprimé');
+    },
+
+    /* ========================================
+       📋 GESTION DES TÂCHES
+    ======================================== */
+    async getTasks(projectId) {
+        const password = AuthManager.getCurrentPassword();
+        const data = await this.loadData(password);
+        
+        if (!data.tasks) data.tasks = {};
+        return data.tasks[projectId] || [];
+    },
+
+    async getTask(projectId, taskId) {
+        const tasks = await this.getTasks(projectId);
+        return tasks.find(t => t.id === taskId);
+    },
+
+    async createTask(taskData) {
+        const password = AuthManager.getCurrentPassword();
+        const data = await this.loadData(password);
+    
+        if (!data.tasks) data.tasks = {};
+        if (!data.tasks[taskData.projectId]) {
+            data.tasks[taskData.projectId] = [];
+        }
+
+        const newTask = {
+            id: 'task_' + Date.now(),
+            title: taskData.title,
+            description: taskData.description || '',
+            priority: taskData.priority || 'medium',
+            status: taskData.status || 'todo',
+            dueDate: taskData.dueDate || null,
+            projectId: taskData.projectId,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        
+        data.tasks[taskData.projectId].push(newTask);
+        await this.saveData(password, data);
+        
+        console.log('✅ Tâche créée:', newTask);
+        return newTask;
+    },
+
+    async updateTask(projectId, taskId, taskData) {
+        const password = AuthManager.getCurrentPassword();
+        const data = await this.loadData(password);
+        
+        if (!data.tasks || !data.tasks[projectId]) return null;
+        
+        const index = data.tasks[projectId].findIndex(t => t.id === taskId);
+        if (index !== -1) {
+            data.tasks[projectId][index] = {
+                ...data.tasks[projectId][index],
+                ...taskData,
+                updatedAt: new Date().toISOString()
+            };
+            
+            await this.saveData(password, data);
+            console.log('✅ Tâche mise à jour');
+            return data.tasks[projectId][index];
+        }
+        
+        return null;
+    },
+
+    async deleteTask(projectId, taskId) {
+        const password = AuthManager.getCurrentPassword();
+        const data = await this.loadData(password);
+        
+        if (!data.tasks || !data.tasks[projectId]) return;
+        
+        data.tasks[projectId] = data.tasks[projectId].filter(t => t.id !== taskId);
+        await this.saveData(password, data);
+        
+        console.log('🗑️ Tâche supprimée');
+    },
+
+    /* ========================================
+       📊 STATISTIQUES
+    ======================================== */
+    async getProjectStats(projectId) {
+        const tasks = await this.getTasks(projectId);
+        
+        return {
+            total: tasks.length,
+            todo: tasks.filter(t => t.status === 'todo').length,
+            inProgress: tasks.filter(t => t.status === 'in-progress').length,
+            done: tasks.filter(t => t.status === 'done').length
+        };
     }
 };
 

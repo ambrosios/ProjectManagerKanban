@@ -1,464 +1,366 @@
-// ========================================
-// 🎯 CLASSE PRINCIPALE KANBAN
-// ========================================
+/* ========================================
+   🎯 PROJECT KANBAN - GESTION COMPLÈTE
+======================================== */
+
 class ProjectKanban {
     constructor() {
-        this.projectId = this.getProjectIdFromUrl();
+        this.projectId = null;
         this.project = null;
         this.tasks = [];
-        this.currentTaskId = null;
+        this.draggedTask = null;
+        this.editingTaskId = null;
+        
+        this.init();
     }
 
-    // ========================================
+    // ============================================
     // 🚀 INITIALISATION
-    // ========================================
+    // ============================================
+    
     async init() {
-        console.log('🎯 Initialisation du Kanban pour le projet:', this.projectId);
-        await this.loadProject();
-        this.loadTasks();
-        this.renderTasks();
-        this.setupEventListeners();
-        this.setupDragAndDrop();
-    }
-
-    // ========================================
-    // 🔗 RÉCUPÉRER L'ID DU PROJET DEPUIS L'URL
-    // ========================================
-    getProjectIdFromUrl() {
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get('id');
-        console.log('📍 ID du projet depuis URL:', id);
-        return id;
-    }
-
-    // ========================================
-    // 📂 CHARGER LE PROJET
-    // ========================================
-    async loadProject() {
-        console.log('📂 Chargement du projet...');
         try {
-            const password = AuthManager.getCurrentPassword();
-            if (!password) {
-                throw new Error('Mot de passe non trouvé');
+            const urlParams = new URLSearchParams(window.location.search);
+            this.projectId = urlParams.get('id');
+
+            if (!this.projectId) {
+                throw new Error('Aucun projet spécifié');
             }
 
-            const userData = await StorageManager.loadData(password);
-            const projects = userData.projects || [];
-            this.project = projects.find(p => p.id === this.projectId);
+            await this.loadProject();
+            await this.loadTasks();
+            this.initEventListeners();
 
-            if (!this.project) {
-                console.error('❌ Projet introuvable');
-                alert('Projet introuvable');
-                window.location.href = 'dashboard.html';
-                return;
-            }
-
-            console.log('✅ Projet chargé:', this.project);
-            this.displayProjectInfo();
         } catch (error) {
-            console.error('❌ Erreur chargement:', error);
+            console.error('❌ Erreur initialisation:', error);
             alert('Erreur lors du chargement du projet');
             window.location.href = 'dashboard.html';
         }
     }
 
-    // ========================================
-    // 📊 AFFICHER LES INFOS DU PROJET
-    // ========================================
-    displayProjectInfo() {
-        const nameEl = document.getElementById('projectName');
-        if (nameEl && this.project) {
-            nameEl.textContent = this.project.title;
+    // ============================================
+    // 📂 CHARGEMENT DES DONNÉES
+    // ============================================
+
+    async loadProject() {
+        this.project = await StorageManager.getProject(this.projectId);
+        
+        if (!this.project) {
+            throw new Error('Projet introuvable');
         }
-        console.log('✅ Infos du projet affichées');
+        
+        document.getElementById('project-name').textContent = this.project.title;
+        document.getElementById('project-description').textContent = 
+            this.project.description || 'Aucune description';
     }
 
-    // ========================================
-    // 📋 CHARGER LES TÂCHES
-    // ========================================
-    loadTasks() {
-        console.log('📋 Chargement des tâches...');
-        const stored = localStorage.getItem(`tasks_${this.projectId}`);
-        this.tasks = stored ? JSON.parse(stored) : [];
-        console.log('✅ Tâches chargées:', this.tasks.length);
-        this.updateStats();
+    async loadTasks() {
+        this.tasks = await StorageManager.getTasks(this.projectId);
+        this.renderKanban();
+        this.updateCounters();
     }
 
-    // ========================================
-    // 🎧 CONFIGURATION DES ÉVÉNEMENTS
-    // ========================================
-    setupEventListeners() {
-        console.log('🎧 Configuration des événements...');
+    // ============================================
+    // 🎨 AFFICHAGE DU KANBAN
+    // ============================================
 
-        // Boutons "Ajouter une tâche"
-        document.querySelectorAll('.add-task-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                console.log('🆕 Clic sur bouton nouvelle tâche');
-                const column = e.target.closest('.kanban-column');
-                const status = column.dataset.status;
-                console.log('📍 Status de la colonne:', status);
-                this.showTaskModal(status);
-            });
-        });
-
-        // Formulaire de tâche
-        const taskForm = document.getElementById('taskForm');
-        if (taskForm) {
-            taskForm.addEventListener('submit', (e) => this.saveTask(e));
-        }
-
-        // Fermeture du modal
-        const closeBtn = document.querySelector('.close');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => this.closeTaskModal());
-        }
-
-        // Fermeture si clic en dehors
-        window.addEventListener('click', (e) => {
-            const modal = document.getElementById('taskModal');
-            if (e.target === modal) {
-                this.closeTaskModal();
-            }
-        });
-
-        console.log('✅ Événements configurés');
-    }
-
-    // ========================================
-    // 🎯 DRAG & DROP - CONFIGURATION
-    // ========================================
-    setupDragAndDrop() {
-        console.log('🎯 Configuration Drag & Drop...');
-
-        const containers = document.querySelectorAll('.cards-container');
-        
-        containers.forEach(container => {
-            // Autoriser le survol
-            container.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                container.classList.add('drag-over');
-            });
-
-            // Retirer la classe au départ
-            container.addEventListener('dragleave', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                container.classList.remove('drag-over');
-            });
-
-            // Gérer le drop
-            container.addEventListener('drop', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                container.classList.remove('drag-over');
-                
-                const taskId = e.dataTransfer.getData('text/plain');
-                const newStatus = container.id.replace('-cards', '');
-                
-                console.log('📦 Drop détecté - TaskID:', taskId, 'Nouveau status:', newStatus);
-                
-                if (taskId) {
-                    this.moveTask(taskId, newStatus);
-                }
-            });
-        });
-
-        this.makeDraggable();
-        
-        console.log('✅ Drag & Drop configuré');
-    }
-
-    // ========================================
-    // 🎯 RENDRE LES CARTES DRAGGABLES
-    // ========================================
-    makeDraggable() {
-        const cards = document.querySelectorAll('.task-card');
-        console.log('🎴 Configuration de', cards.length, 'cartes draggables');
-        
-        cards.forEach(card => {
-            card.setAttribute('draggable', 'true');
-            
-            // Début du drag
-            card.addEventListener('dragstart', (e) => {
-                const taskId = card.dataset.taskId;
-                e.dataTransfer.effectAllowed = 'move';
-                e.dataTransfer.setData('text/plain', taskId);
-                card.classList.add('dragging');
-                console.log('🎯 Drag start - TaskID:', taskId);
-            });
-
-            // Fin du drag
-            card.addEventListener('dragend', (e) => {
-                card.classList.remove('dragging');
-                document.querySelectorAll('.drag-over').forEach(el => {
-                    el.classList.remove('drag-over');
-                });
-                console.log('✅ Drag end');
-            });
-        });
-    }
-
-    // ========================================
-    // 🔄 DÉPLACER UNE TÂCHE
-    // ========================================
-    moveTask(taskId, newStatus) {
-        console.log('🔄 moveTask appelé - TaskID:', taskId, 'Nouveau status:', newStatus);
-        
-        const task = this.tasks.find(t => t.id === taskId);
-        
-        if (!task) {
-            console.error('❌ Tâche introuvable:', taskId);
-            return;
-        }
-
-        const oldStatus = task.status;
-        
-        if (oldStatus === newStatus) {
-            console.log('ℹ️ Même statut, pas de changement');
-            return;
-        }
-
-        // Mettre à jour la tâche
-        task.status = newStatus;
-        task.updatedAt = new Date().toISOString();
-        
-        console.log('✅ Tâche mise à jour:', task.name, oldStatus, '→', newStatus);
-        
-        // Sauvegarder
-        localStorage.setItem(`tasks_${this.projectId}`, JSON.stringify(this.tasks));
-        
-        // Re-rendre l'interface
-        this.renderTasks();
-        this.updateStats();
-        
-        console.log('✅ Interface mise à jour');
-    }
-
-    // ========================================
-    // 📝 AFFICHER LE MODAL DE TÂCHE
-    // ========================================
-    showTaskModal(status = 'todo', taskId = null) {
-        console.log('📝 Ouverture modal - Status:', status, 'TaskID:', taskId);
-        
-        const modal = document.getElementById('taskModal');
-        const form = document.getElementById('taskForm');
-        const title = document.getElementById('modalTitle');
-
-        this.currentTaskId = taskId;
-
-        if (taskId) {
-            // Mode édition
-            const task = this.tasks.find(t => t.id === taskId);
-            if (task) {
-                title.textContent = 'Modifier la tâche';
-                document.getElementById('taskName').value = task.name;
-                document.getElementById('taskDescription').value = task.description || '';
-                document.getElementById('taskPriority').value = task.priority;
-                document.getElementById('taskDueDate').value = task.dueDate || '';
-                document.getElementById('taskStatus').value = task.status;
-                document.getElementById('taskAssignee').value = task.assignee || '';
-                console.log('📝 Mode édition - Tâche chargée:', task.name);
-            }
-        } else {
-            // Mode création
-            title.textContent = 'Nouvelle tâche';
-            form.reset();
-            document.getElementById('taskStatus').value = status;
-            console.log('📝 Mode création - Status par défaut:', status);
-        }
-
-        modal.classList.add('active');
-    }
-
-    // ========================================
-    // ❌ FERMER LE MODAL
-    // ========================================
-    closeTaskModal() {
-        console.log('❌ Fermeture du modal');
-        const modal = document.getElementById('taskModal');
-        modal.classList.remove('active');
-        this.currentTaskId = null;
-        document.getElementById('taskForm').reset();
-    }
-
-    // ========================================
-    // 💾 SAUVEGARDER UNE TÂCHE
-    // ========================================
-    saveTask(e) {
-        e.preventDefault();
-        console.log('💾 Sauvegarde de la tâche...');
-
-        const formData = {
-            name: document.getElementById('taskName').value.trim(),
-            description: document.getElementById('taskDescription').value.trim(),
-            priority: document.getElementById('taskPriority').value,
-            dueDate: document.getElementById('taskDueDate').value,
-            status: document.getElementById('taskStatus').value,
-            assignee: document.getElementById('taskAssignee').value.trim()
-        };
-
-        console.log('📋 Données du formulaire:', formData);
-
-        if (this.currentTaskId) {
-            // Mise à jour
-            const task = this.tasks.find(t => t.id === this.currentTaskId);
-            if (task) {
-                Object.assign(task, formData);
-                task.updatedAt = new Date().toISOString();
-                console.log('✅ Tâche mise à jour:', task.name);
-            }
-        } else {
-            // Création
-            const newTask = {
-                id: 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                ...formData,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            };
-            this.tasks.push(newTask);
-            console.log('✅ Nouvelle tâche créée:', newTask.name, 'ID:', newTask.id);
-        }
-
-        // Sauvegarder
-        localStorage.setItem(`tasks_${this.projectId}`, JSON.stringify(this.tasks));
-        console.log('💾 Tâches sauvegardées dans localStorage');
-
-        // Mettre à jour l'affichage
-        this.renderTasks();
-        this.updateStats();
-        this.closeTaskModal();
-
-        console.log('✅ Sauvegarde terminée');
-    }
-
-    // ========================================
-    // 🎨 AFFICHER LES TÂCHES
-    // ========================================
-    renderTasks() {
-        console.log('🎨 Rendu des tâches...');
-        
+    renderKanban() {
         // Vider les colonnes
         ['todo', 'in-progress', 'done'].forEach(status => {
-            const container = document.getElementById(`${status}-cards`);
-            if (container) {
-                container.innerHTML = '';
-            }
+            const column = document.getElementById(`column-${status}`);
+            column.innerHTML = '';
         });
 
-        // Ajouter les tâches
+        // Afficher les tâches
         this.tasks.forEach(task => {
             const card = this.createTaskCard(task);
-            const container = document.getElementById(`${task.status}-cards`);
-            if (container) {
-                container.appendChild(card);
-            }
+            const column = document.getElementById(`column-${task.status}`);
+            column.appendChild(card);
         });
-
-        // Reconfigurer le drag & drop
-        this.makeDraggable();
-
-        // Mettre à jour les compteurs
-        this.updateTaskCounts();
-        
-        console.log('✅ Tâches rendues:', this.tasks.length);
     }
 
-    // ========================================
-    // 🎴 CRÉER UNE CARTE DE TÂCHE
-    // ========================================
     createTaskCard(task) {
         const card = document.createElement('div');
         card.className = 'task-card';
-        card.dataset.priority = task.priority;
+        card.draggable = true;
         card.dataset.taskId = task.id;
 
-        const priorityLabels = {
-            low: '🟢 Basse',
-            medium: '🟡 Moyenne',
-            high: '🔴 Haute'
+        // Priorité
+        const priorityEmoji = {
+            'low': '🟢',
+            'medium': '🟡',
+            'high': '🔴'
         };
 
-        // Gestion de la date d'échéance
-        let dateClass = '';
-        let dateText = '';
+        // Date d'échéance avec couleur
+        let dueDateHTML = '';
         if (task.dueDate) {
-            const dueDate = new Date(task.dueDate);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            dueDate.setHours(0, 0, 0, 0);
-
-            const diffTime = dueDate - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-            if (diffDays < 0) {
-                dateClass = 'overdue';
-            } else if (diffDays <= 2) {
-                // Vérifier si c'est un jour ouvré
-                const dayOfWeek = dueDate.getDay();
-                if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-                    dateClass = 'due-soon';
-                }
-            }
-
-            dateText = dueDate.toLocaleDateString('fr-FR');
+            const dueClass = this.getDueDateClass(task.dueDate);
+            const dateFormatted = new Date(task.dueDate).toLocaleDateString('fr-FR');
+            dueDateHTML = `<div class="task-due-date ${dueClass}">📅 ${dateFormatted}</div>`;
         }
+
+        // Description tronquée (2 lignes max)
+        const shortDescription = this.truncateDescription(task.description);
 
         card.innerHTML = `
             <div class="task-header">
-                <h4 class="task-title">${task.name}</h4>
-                <div class="task-actions">
-                    <button class="task-btn" onclick="app.editTask('${task.id}')" title="Modifier">
-                        ✏️
-                    </button>
-                    <button class="task-btn" onclick="app.deleteTask('${task.id}')" title="Supprimer">
-                        🗑️
-                    </button>
-                </div>
+                <span class="task-priority">${priorityEmoji[task.priority || 'medium']}</span>
+                <h3 class="task-title">${this.escapeHtml(task.title)}</h3>
             </div>
-            ${task.description ? `<p class="task-description">${task.description}</p>` : ''}
-            <div class="task-footer">
-                <span class="task-priority">${priorityLabels[task.priority]}</span>
-                ${dateText ? `<span class="task-date ${dateClass}">📅 ${dateText}</span>` : ''}
-            </div>
+            ${shortDescription ? `<p class="task-description">${this.escapeHtml(shortDescription)}</p>` : ''}
+            ${dueDateHTML}
         `;
+
+        // Événements
+        card.addEventListener('click', () => this.openEditModal(task));
+        card.addEventListener('dragstart', (e) => this.handleDragStart(e, task));
+        card.addEventListener('dragend', (e) => this.handleDragEnd(e));
 
         return card;
     }
 
-    // ========================================
-    // ✏️ ÉDITER UNE TÂCHE
-    // ========================================
-    editTask(taskId) {
-        console.log('✏️ Édition de la tâche:', taskId);
-        const task = this.tasks.find(t => t.id === taskId);
-        if (task) {
-            this.showTaskModal(task.status, taskId);
-        }
+    truncateDescription(text) {
+        if (!text) return '';
+        const maxLength = 80;
+        if (text.length <= maxLength) return text;
+        return text.substring(0, maxLength) + '...';
     }
 
-    // ========================================
-    // 🗑️ SUPPRIMER UNE TÂCHE
-    // ========================================
-    deleteTask(taskId) {
-        console.log('🗑️ Demande de suppression:', taskId);
-        const task = this.tasks.find(t => t.id === taskId);
+    getDueDateClass(dueDate) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
         
-        if (task && confirm(`Voulez-vous vraiment supprimer la tâche "${task.name}" ?`)) {
-            this.tasks = this.tasks.filter(t => t.id !== taskId);
-            localStorage.setItem(`tasks_${this.projectId}`, JSON.stringify(this.tasks));
-            this.renderTasks();
-            this.updateStats();
-            console.log('✅ Tâche supprimée');
-        } else {
-            console.log('❌ Suppression annulée');
+        const due = new Date(dueDate);
+        due.setHours(0, 0, 0, 0);
+        
+        const diffTime = due - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays < 0) return 'overdue'; // Passé = rouge
+        if (diffDays <= 2 && this.isWorkingDay(due)) return 'due-soon'; // 2j ouvrés = orange
+        return '';
+    }
+
+    isWorkingDay(date) {
+        const day = date.getDay();
+        return day !== 0 && day !== 6; // Pas samedi (6) ni dimanche (0)
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // ============================================
+    // 🖱️ DRAG & DROP
+    // ============================================
+
+    initEventListeners() {
+        // Bouton nouvelle tâche
+        document.getElementById('btn-add-task').addEventListener('click', () => {
+            this.openCreateModal();
+        });
+
+        // Fermeture modal
+        document.querySelectorAll('.modal-close').forEach(btn => {
+            btn.addEventListener('click', () => this.closeModal());
+        });
+
+        // Formulaire
+        document.getElementById('form-task').addEventListener('submit', (e) => {
+            this.handleSubmitTask(e);
+        });
+
+        // Bouton supprimer
+        document.getElementById('btn-delete-task').addEventListener('click', () => {
+            this.handleDeleteTask();
+        });
+
+        // Drop zones
+        document.querySelectorAll('.column-content').forEach(column => {
+            column.addEventListener('dragover', (e) => this.handleDragOver(e));
+            column.addEventListener('drop', (e) => this.handleDrop(e));
+            column.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+        });
+    }
+
+    handleDragStart(e, task) {
+        this.draggedTask = task;
+        e.currentTarget.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+    }
+
+    handleDragEnd(e) {
+        e.currentTarget.classList.remove('dragging');
+        document.querySelectorAll('.column-content').forEach(col => {
+            col.classList.remove('drag-over');
+        });
+    }
+
+    handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        e.currentTarget.classList.add('drag-over');
+    }
+
+    handleDragLeave(e) {
+        if (e.currentTarget === e.target) {
+            e.currentTarget.classList.remove('drag-over');
         }
     }
 
-    // ========================================
-    // 🔢 METTRE À JOUR LES COMPTEURS
-    // ========================================
-    updateTaskCounts() {
+    async handleDrop(e) {
+        e.preventDefault();
+        e.currentTarget.classList.remove('drag-over');
+
+        if (!this.draggedTask) return;
+
+        const newStatus = e.currentTarget.dataset.status;
+        
+        if (this.draggedTask.status !== newStatus) {
+            this.draggedTask.status = newStatus;
+            this.draggedTask.modifiedAt = new Date().toISOString();
+            
+            await StorageManager.updateTask(this.projectId, this.draggedTask.id,    this.draggedTask);
+            await this.loadTasks();
+        }
+
+        this.draggedTask = null;
+    }
+
+    // ============================================
+    // 📝 GESTION DES MODALS
+    // ============================================
+
+    openCreateModal() {
+        this.editingTaskId = null;
+        
+        document.getElementById('modal-title').textContent = 'Nouvelle tâche';
+        document.getElementById('btn-submit-text').textContent = 'Créer la tâche';
+        document.getElementById('btn-delete-task').style.display = 'none';
+        document.getElementById('task-metadata').style.display = 'none';
+        
+        document.getElementById('form-task').reset();
+        document.getElementById('task-status').value = 'todo';
+        document.getElementById('task-priority').value = 'medium';
+        
+        document.getElementById('modal-task').classList.add('active');
+    }
+
+    openEditModal(task) {
+        this.editingTaskId = task.id;
+        
+        document.getElementById('modal-title').textContent = 'Modifier la tâche';
+        document.getElementById('btn-submit-text').textContent = 'Enregistrer';
+        document.getElementById('btn-delete-task').style.display = 'block';
+        
+        // Remplir le formulaire
+        document.getElementById('task-title').value = task.title;
+        document.getElementById('task-description').value = task.description || '';
+        document.getElementById('task-dueDate').value = task.dueDate || '';
+        document.getElementById('task-status').value = task.status;
+        document.getElementById('task-priority').value = task.priority || 'medium';
+        
+        // Afficher métadonnées
+        this.displayMetadata(task);
+        
+        document.getElementById('modal-task').classList.add('active');
+    }
+
+    displayMetadata(task) {
+        const metaSection = document.getElementById('task-metadata');
+        metaSection.style.display = 'block';
+        
+        const createdDate = new Date(task.createdAt).toLocaleString('fr-FR');
+        const modifiedDate = task.modifiedAt ? 
+            new Date(task.modifiedAt).toLocaleString('fr-FR') : 
+            'Jamais modifiée';
+        
+        const lifetime = this.calculateLifetime(task.createdAt);
+        
+        document.getElementById('meta-created').textContent = createdDate;
+        document.getElementById('meta-modified').textContent = modifiedDate;
+        document.getElementById('meta-lifetime').textContent = lifetime;
+    }
+
+    calculateLifetime(createdAt) {
+        const created = new Date(createdAt);
+        const now = new Date();
+        const diffMs = now - created;
+        
+        const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        
+        if (days > 0) return `${days}j ${hours}h`;
+        return `${hours}h`;
+    }
+
+    closeModal() {
+        document.getElementById('modal-task').classList.remove('active');
+        document.getElementById('form-task').reset();
+        this.editingTaskId = null;
+    }
+
+    // ============================================
+    // 💾 CRUD TÂCHES
+    // ============================================
+
+    async handleSubmitTask(e) {
+        e.preventDefault();
+
+        const taskData = {
+            title: document.getElementById('task-title').value.trim(),
+            description: document.getElementById('task-description').value.trim(),
+            dueDate: document.getElementById('task-dueDate').value,
+            status: document.getElementById('task-status').value,
+            priority: document.getElementById('task-priority').value,
+            projectId: this.projectId
+        };
+
+        try {
+            if (this.editingTaskId) {
+                // Mise à jour
+                const existingTask = this.tasks.find(t => t.id === this.editingTaskId);
+                const updatedTask = {
+                    ...existingTask,
+                    ...taskData,
+                    modifiedAt: new Date().toISOString()
+                };
+
+                await StorageManager.updateTask(this.projectId, existingTask.id, updatedTask);
+            } else {
+                // Création
+                await StorageManager.createTask(taskData);
+            }
+
+            await this.loadTasks();
+            this.closeModal();
+
+        } catch (error) {
+            console.error('❌ Erreur sauvegarde tâche:', error);
+            alert('Erreur lors de la sauvegarde');
+        }
+    }
+
+    async handleDeleteTask() {
+        if (!confirm('Supprimer cette tâche ?')) return;
+
+        try {
+            await StorageManager.deleteTask(this.projectId, this.editingTaskId);
+            await this.loadTasks();
+            this.closeModal();
+        } catch (error) {
+            console.error('❌ Erreur suppression:', error);
+            alert('Erreur lors de la suppression');
+        }
+    }
+
+    // ============================================
+    // 📊 COMPTEURS
+    // ============================================
+
+    updateCounters() {
         const counts = {
             'todo': 0,
             'in-progress': 0,
@@ -466,79 +368,20 @@ class ProjectKanban {
         };
 
         this.tasks.forEach(task => {
-            if (counts.hasOwnProperty(task.status)) {
-                counts[task.status]++;
-            }
+            counts[task.status]++;
         });
 
-        Object.keys(counts).forEach(status => {
-            const countEl = document.getElementById(`${status}-count`);
-            if (countEl) {
-                countEl.textContent = counts[status];
-            }
-        });
-
-        console.log('🔢 Compteurs mis à jour:', counts);
-    }
-
-    // ========================================
-    // 📊 METTRE À JOUR LES STATISTIQUES
-    // ========================================
-    updateStats() {
-        const total = this.tasks.length;
-        const done = this.tasks.filter(t => t.status === 'done').length;
-        const progress = total > 0 ? Math.round((done / total) * 100) : 0;
-
-        const totalEl = document.getElementById('totalTasks');
-        const doneEl = document.getElementById('doneTasks');
-        const progressEl = document.getElementById('progressPercent');
-
-        if (totalEl) totalEl.textContent = total;
-        if (doneEl) doneEl.textContent = done;
-        if (progressEl) progressEl.textContent = `${progress}%`;
-
-        console.log('📊 Stats mises à jour - Total:', total, 'Terminées:', done, 'Progrès:', progress + '%');
-    }
-
-    // ========================================
-    // 🗑️ SUPPRIMER LE PROJET
-    // ========================================
-    async deleteProject() {
-        console.log('🗑️ Demande de suppression du projet');
-        
-        if (confirm(`Voulez-vous vraiment supprimer le projet "${this.project.name}" et toutes ses tâches ?`)) {
-            try {
-                const password = AuthManager.getCurrentPassword();
-                const userData = await StorageManager.loadData(password);
-                
-                // Supprimer le projet
-                userData.projects = userData.projects.filter(p => p.id !== this.projectId);
-                
-                // Sauvegarder
-                await StorageManager.saveData(userData, password);
-                
-                // Supprimer les tâches
-                localStorage.removeItem(`tasks_${this.projectId}`);
-
-                console.log('✅ Projet supprimé');
-
-                // Retour au dashboard
-                window.location.href = 'dashboard.html';
-            } catch (error) {
-                console.error('❌ Erreur suppression:', error);
-                alert('Erreur lors de la suppression du projet');
-            }
-        } else {
-            console.log('❌ Suppression annulée');
-        }
+        document.getElementById('count-todo').textContent = counts['todo'];
+        document.getElementById('count-in-progress').textContent = counts['in-progress'];
+        document.getElementById('count-done').textContent = counts['done'];
     }
 }
 
-// ========================================
-// 🚀 INITIALISATION AU CHARGEMENT
-// ========================================
+// ============================================
+// 🚀 DÉMARRAGE
+// ============================================
+
+let kanban;
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 DOM chargé, création de l\'instance ProjectKanban...');
-    window.app = new ProjectKanban();
-    window.app.init();
+    kanban = new ProjectKanban();
 });
